@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_selectable_rounded"
+    android:orientation="vertical"
+    android:padding="@dimen/space_s">
+
+    <com.kitsudo.kitmux.ui.SquareFrameLayout
+        android:id="@+id/iconContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_rounded_l"
+        android:backgroundTint="?attr/colorSurfaceContainerHighest">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="@dimen/size_icon_l"
+            android:layout_height="@dimen/size_icon_l"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_folder" />
+
+        <ImageButton
+            android:id="@+id/play"
+            style="@style/Widget.KitMux.FolderPlayButton"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/space_s"
+            android:contentDescription="@string/play"
+            android:src="@drawable/ic_play" />
+    </com.kitsudo.kitmux.ui.SquareFrameLayout>
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_s"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingHorizontal="@dimen/space_xs"
+        android:textAppearance="@style/TextAppearance.KitMux.ListTitle"
+        tools:text="Rock" />
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:paddingHorizontal="@dimen/space_xs"
+        android:textAppearance="@style/TextAppearance.KitMux.Caption"
+        tools:text="12 canciones" />
+</LinearLayout>

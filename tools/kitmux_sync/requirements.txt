@@ -1,0 +1,2 @@
+watchdog>=4
+zeroconf>=0.130

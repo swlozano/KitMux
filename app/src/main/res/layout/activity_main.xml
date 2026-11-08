@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.MainActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        style="@style/Widget.Material3.Toolbar.Surface"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:contentInsetStart="@dimen/space_l"
+        app:title="">
+
+        <LinearLayout
+            android:id="@+id/logoBlock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/size_toolbar_logo"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/app_name"
+                android:src="@drawable/logo_wordmark" />
+
+            <TextView
+                android:id="@+id/songCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xxs"
+                android:textAppearance="@style/TextAppearance.KitMux.Caption"
+                android:visibility="gone"
+                tools:text="358 canciones"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <LinearLayout
+        android:id="@+id/syncBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/space_m"
+        android:layout_marginBottom="@dimen/space_xs"
+        android:background="@drawable/bg_rounded_l"
+        android:backgroundTint="?attr/colorPrimaryContainer"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_l"
+        android:paddingEnd="@dimen/space_xs"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_sync"
+            app:tint="?attr/colorOnPrimaryContainer" />
+
+        <TextView
+            android:id="@+id/syncText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/space_m"
+            android:layout_weight="1"
+            android:paddingVertical="@dimen/space_m"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            tools:text="Recibiendo desde PC · código 123456" />
+
+        <Button
+            android:id="@+id/syncStop"
+            style="@style/Widget.KitMux.Banner.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_stop" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/folderList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="@dimen/space_xs"
+            android:paddingBottom="@dimen/space_s"
+            tools:listitem="@layout/item_folder_list" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/songList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="@dimen/space_xs"
+            android:paddingBottom="@dimen/space_s"
+            android:visibility="gone"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_song" />
+
+        <TextView
+            android:id="@+id/emptyView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawablePadding="@dimen/space_l"
+            android:gravity="center"
+            android:padding="@dimen/space_xxl"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone"
+            app:drawableTint="?attr/colorOutline"
+            app:drawableTopCompat="@drawable/ic_folder_large"
+            tools:text="@string/empty_no_music"
+            tools:visibility="visible" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/miniPlayer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+        app:cardElevation="0dp"
+        app:shapeAppearance="@style/ShapeAppearance.KitMux.BottomPanel"
+        app:strokeWidth="0dp"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/miniPlayerContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/space_s"
+            android:paddingTop="@dimen/space_m"
+            android:paddingBottom="@dimen/space_m">
+
+            <TextView
+                android:id="@+id/nowTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingHorizontal="@dimen/space_l"
+                android:textAppearance="@style/TextAppearance.KitMux.PlayerTitle"
+                tools:text="Título de la canción" />
+
+            <TextView
+                android:id="@+id/nowArtist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingHorizontal="@dimen/space_l"
+                android:textAppearance="@style/TextAppearance.KitMux.PlayerSubtitle"
+                tools:text="Artista" />
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_s"
+                android:paddingVertical="@dimen/space_s"
+                android:progressBackgroundTint="?attr/colorOutlineVariant"
+                android:progressTint="?attr/colorPrimary"
+                android:thumbTint="?attr/colorPrimary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="@dimen/space_l">
+
+                <TextView
+                    android:id="@+id/elapsed"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="@style/TextAppearance.KitMux.Caption"
+                    tools:text="1:23" />
+
+                <TextView
+                    android:id="@+id/total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.KitMux.Caption"
+                    tools:text="3:45" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_xs"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/shuffle"
+                    style="@style/Widget.KitMux.PlayerButton"
+                    android:contentDescription="@string/shuffle"
+                    android:src="@drawable/ic_shuffle" />
+
+                <ImageButton
+                    android:id="@+id/previous"
+                    style="@style/Widget.KitMux.PlayerButton"
+                    android:contentDescription="@string/previous"
+                    android:src="@drawable/ic_skip_previous"
+                    app:tint="?attr/colorOnSurface" />
+
+                <ImageButton
+                    android:id="@+id/playPause"
+                    style="@style/Widget.KitMux.PlayerButton.Play"
+                    android:contentDescription="@string/play"
+                    android:src="@drawable/ic_play" />
+
+                <ImageButton
+                    android:id="@+id/next"
+                    style="@style/Widget.KitMux.PlayerButton"
+                    android:contentDescription="@string/next"
+                    android:src="@drawable/ic_skip_next"
+                    app:tint="?attr/colorOnSurface" />
+
+                <ImageButton
+                    android:id="@+id/repeat"
+                    style="@style/Widget.KitMux.PlayerButton"
+                    android:contentDescription="@string/repeat"
+                    android:src="@drawable/ic_repeat" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+</LinearLayout>

@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name">KitMux</string>
+    <string name="add_folder">Añadir carpeta</string>
+    <string name="rescan">Escanear dispositivo</string>
+    <string name="scanning">Buscando música…</string>
+    <string name="empty_no_music">No se encontró música. Pulsa «Añadir carpeta» para elegir una carpeta concreta.</string>
+    <string name="empty_no_permission">Sin permiso para leer la música del dispositivo. Concédelo con «Escanear dispositivo» o elige una carpeta con «Añadir carpeta».</string>
+    <string name="unknown_artist">Artista desconocido</string>
+    <string name="song_subtitle">%1$s · %2$s</string>
+    <string name="play">Reproducir</string>
+    <string name="pause">Pausar</string>
+    <string name="next">Siguiente</string>
+    <string name="previous">Anterior</string>
+    <string name="shuffle">Aleatorio</string>
+    <string name="repeat">Repetir</string>
+    <string name="sync_receive">Recibir desde PC</string>
+    <string name="sync_channel">Recepción desde PC</string>
+    <string name="sync_notification_ready">Esperando al PC</string>
+    <string name="sync_waiting_wifi">Recibir desde PC: conéctate a una red WiFi</string>
+    <string name="sync_pairing_code">Código de emparejado: %1$s</string>
+    <string name="sync_banner_ready">Recibiendo desde PC · código %1$s</string>
+    <string name="sync_stop">Detener</string>
+    <string name="sync_needs_storage">Sin permiso de almacenamiento no se pueden guardar los archivos recibidos.</string>
+    <string name="folder_subtitle">%1$s · %2$s</string>
+    <string name="folder_play">Reproducir %1$s</string>
+    <string name="folder_pause">Pausar %1$s</string>
+    <string name="library_summary">%1$s · %2$s</string>
+    <string name="view_as_grid">Ver como cuadrícula</string>
+    <string name="view_as_list">Ver como lista</string>
+    <string name="back">Volver</string>
+    <plurals name="folder_count">
+        <item quantity="one">%d carpeta</item>
+        <item quantity="other">%d carpetas</item>
+    </plurals>
+    <plurals name="song_count">
+        <item quantity="one">%d canción</item>
+        <item quantity="other">%d canciones</item>
+    </plurals>
+</resources>

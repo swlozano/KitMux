@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:baselineAligned="false"
+    android:gravity="center_vertical"
+    android:minHeight="72dp"
+    android:orientation="horizontal"
+    android:paddingVertical="@dimen/space_s"
+    android:paddingStart="@dimen/space_l"
+    android:paddingEnd="@dimen/space_l">
+
+    <FrameLayout
+        android:id="@+id/iconContainer"
+        android:layout_width="@dimen/size_artwork_m"
+        android:layout_height="@dimen/size_artwork_m"
+        android:background="@drawable/bg_rounded_m"
+        android:backgroundTint="?attr/colorSurfaceContainerHighest">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="@dimen/size_icon"
+            android:layout_height="@dimen/size_icon"
+            android:layout_gravity="center"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_folder" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/space_l"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.KitMux.ListTitle"
+            tools:text="Rock" />
+
+        <TextView
+            android:id="@+id/subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.KitMux.ListSubtitle"
+            tools:text="12 canciones · Music" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/play"
+        style="@style/Widget.KitMux.FolderPlayButton"
+        android:contentDescription="@string/play"
+        android:src="@drawable/ic_play" />
+</LinearLayout>

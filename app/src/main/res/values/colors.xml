@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sistema de diseño KitMux · colores.
+    1) Paleta de marca: valores fijos sacados del logo. No usarlos directamente en layouts.
+    2) Roles: lo que usan los layouts (vía los atributos del tema, p. ej. ?attr/colorPrimary).
+       values-night/colors.xml redefine los roles para el modo oscuro.
+-->
+<resources>
+    <!-- 1) Paleta de marca -->
+    <color name="brand_orange">#F0360A</color>        <!-- naranja del logo: botón principal, acentos grandes -->
+    <color name="brand_orange_dark">#C22D07</color>   <!-- naranja legible para texto sobre claro (5,6:1) -->
+    <color name="brand_orange_light">#FF8A65</color>  <!-- naranja legible sobre oscuro (8:1) -->
+    <color name="brand_orange_10">#3C0800</color>
+    <color name="brand_orange_30">#8C2000</color>
+    <color name="brand_orange_90">#FFDBD1</color>
+    <color name="brand_gray">#646669</color>          <!-- gris del logo -->
+    <color name="white">#FFFFFF</color>
+
+    <!-- Icono de la app (siempre blanco, no cambia en modo oscuro) -->
+    <color name="ic_launcher_background">#FFFFFF</color>
+
+    <!-- 2) Roles · tema claro -->
+    <color name="color_brand">@color/brand_orange</color>
+    <color name="color_on_brand">@color/white</color>
+    <color name="color_primary">@color/brand_orange_dark</color>
+    <color name="color_on_primary">@color/white</color>
+    <color name="color_primary_container">@color/brand_orange_90</color>
+    <color name="color_on_primary_container">@color/brand_orange_10</color>
+    <color name="color_secondary">@color/brand_gray</color>
+    <color name="color_on_secondary">@color/white</color>
+    <color name="color_secondary_container">#E4E2E5</color>
+    <color name="color_on_secondary_container">#1D1B1E</color>
+    <color name="color_surface">#FFFBFA</color>
+    <color name="color_on_surface">#1D1B1A</color>
+    <color name="color_surface_variant">#F0EAE8</color>
+    <color name="color_on_surface_variant">#55575A</color>
+    <color name="color_surface_container_lowest">#FFFFFF</color>
+    <color name="color_surface_container_low">#FBF5F3</color>
+    <color name="color_surface_container">#F6F0EE</color>
+    <color name="color_surface_container_high">#F3EDEB</color>
+    <color name="color_surface_container_highest">#EDE7E5</color>
+    <color name="color_outline">#85878A</color>
+    <color name="color_outline_variant">#D8D2D0</color>
+    <color name="color_error">#BA1A1A</color>
+    <color name="color_on_error">#FFFFFF</color>
+    <color name="splash_background">#FFFFFF</color>
+</resources>

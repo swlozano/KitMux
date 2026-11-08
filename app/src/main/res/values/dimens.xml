@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sistema de diseño KitMux · espaciado (escala de 4dp), radios y tamaños. -->
+<resources>
+    <dimen name="space_xxs">2dp</dimen>
+    <dimen name="space_xs">4dp</dimen>
+    <dimen name="space_s">8dp</dimen>
+    <dimen name="space_m">12dp</dimen>
+    <dimen name="space_l">16dp</dimen>
+    <dimen name="space_xl">24dp</dimen>
+    <dimen name="space_xxl">32dp</dimen>
+
+    <!-- Radios: inspirados en el cuadrado redondeado del icono -->
+    <dimen name="radius_xs">4dp</dimen>
+    <dimen name="radius_s">8dp</dimen>
+    <dimen name="radius_m">12dp</dimen>
+    <dimen name="radius_l">16dp</dimen>
+    <dimen name="radius_xl">28dp</dimen>
+
+    <dimen name="size_touch">48dp</dimen>
+    <dimen name="size_icon">24dp</dimen>
+    <dimen name="size_icon_l">48dp</dimen>
+    <dimen name="size_artwork_s">44dp</dimen>
+    <dimen name="size_artwork_m">48dp</dimen>
+    <dimen name="size_folder_play">44dp</dimen>
+    <dimen name="grid_cell_min_width">160dp</dimen>
+    <dimen name="size_play_button">64dp</dimen>
+    <dimen name="size_toolbar_logo">22dp</dimen>
+</resources>

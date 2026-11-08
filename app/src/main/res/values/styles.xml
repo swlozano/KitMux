@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sistema de diseño KitMux · componentes. -->
+<resources>
+    <!-- Botones secundarios del reproductor (anterior, siguiente, aleatorio, repetir) -->
+    <style name="Widget.KitMux.PlayerButton" parent="">
+        <item name="android:layout_width">@dimen/size_touch</item>
+        <item name="android:layout_height">@dimen/size_touch</item>
+        <item name="android:layout_marginHorizontal">@dimen/space_xs</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="tint">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <!-- Botón principal: círculo naranja de marca -->
+    <style name="Widget.KitMux.PlayerButton.Play">
+        <item name="android:layout_width">@dimen/size_play_button</item>
+        <item name="android:layout_height">@dimen/size_play_button</item>
+        <item name="android:layout_marginHorizontal">@dimen/space_m</item>
+        <item name="android:background">@drawable/bg_play_button</item>
+        <item name="android:elevation">2dp</item>
+        <item name="tint">@color/color_on_brand</item>
+    </style>
+
+
+    <!-- Reproducir una carpeta (lista: al lado del nombre; cuadrícula: abajo a la derecha) -->
+    <!-- En reposo: gris. La carpeta seleccionada pasa al naranja de marca (FolderAdapter). -->
+    <style name="Widget.KitMux.FolderPlayButton" parent="">
+        <item name="android:layout_width">@dimen/size_folder_play</item>
+        <item name="android:layout_height">@dimen/size_folder_play</item>
+        <item name="android:background">@drawable/bg_play_button</item>
+        <item name="android:backgroundTint">?attr/colorSecondaryContainer</item>
+        <item name="android:padding">@dimen/space_s</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="tint">?attr/colorSecondary</item>
+    </style>
+
+    <!-- Aviso destacado (p. ej. «Recibiendo desde PC») -->
+    <style name="Widget.KitMux.Banner.Button" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">?attr/colorOnPrimaryContainer</item>
+    </style>
+</resources>

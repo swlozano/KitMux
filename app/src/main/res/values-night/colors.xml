@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sistema de diseño KitMux · roles para el tema oscuro (mismos nombres que values/colors.xml). -->
+<resources>
+    <color name="color_brand">@color/brand_orange</color>
+    <color name="color_on_brand">@color/white</color>
+    <color name="color_primary">@color/brand_orange_light</color>
+    <color name="color_on_primary">@color/brand_orange_10</color>
+    <color name="color_primary_container">@color/brand_orange_30</color>
+    <color name="color_on_primary_container">@color/brand_orange_90</color>
+    <color name="color_secondary">#C6C6CA</color>
+    <color name="color_on_secondary">#2E3033</color>
+    <color name="color_secondary_container">#45474A</color>
+    <color name="color_on_secondary_container">#E2E2E6</color>
+    <color name="color_surface">#141313</color>
+    <color name="color_on_surface">#E8E1DF</color>
+    <color name="color_surface_variant">#2A2828</color>
+    <color name="color_on_surface_variant">#C4C6CA</color>
+    <color name="color_surface_container_lowest">#0F0E0E</color>
+    <color name="color_surface_container_low">#1D1B1A</color>
+    <color name="color_surface_container">#211F1F</color>
+    <color name="color_surface_container_high">#2A2828</color>
+    <color name="color_surface_container_highest">#353333</color>
+    <color name="color_outline">#8E9094</color>
+    <color name="color_outline_variant">#45474A</color>
+    <color name="color_error">#FFB4AB</color>
+    <color name="color_on_error">#690005</color>
+    <color name="splash_background">#141313</color>
+</resources>

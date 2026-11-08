@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sistema de diseño KitMux · tipografía.
+    Se usa la escala de Material 3 (?attr/textAppearanceTitleMedium, BodyMedium, LabelSmall…)
+    con la fuente del sistema. Estos estilos añaden el color de rol que corresponde a cada uso.
+-->
+<resources>
+    <style name="TextAppearance.KitMux.ListTitle" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+    <style name="TextAppearance.KitMux.ListSubtitle" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    <style name="TextAppearance.KitMux.PlayerTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.KitMux.PlayerSubtitle" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+    <style name="TextAppearance.KitMux.Caption" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_layout"
+        android:icon="@drawable/ic_grid_view"
+        android:title="@string/view_as_grid"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_add_folder"
+        android:icon="@drawable/ic_add_folder"
+        android:title="@string/add_folder"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_rescan"
+        android:icon="@drawable/ic_refresh"
+        android:title="@string/rescan"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_sync"
+        android:checkable="true"
+        android:title="@string/sync_receive"
+        app:showAsAction="never" />
+</menu>

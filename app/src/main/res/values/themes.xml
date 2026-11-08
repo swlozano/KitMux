@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sistema de diseño KitMux · tema (Material 3).
+    Los colores vienen de los roles de values/colors.xml (y values-night para el modo oscuro):
+    en layouts usa siempre ?attr/colorPrimary, ?attr/colorSurface…, nunca un color fijo.
+-->
+<resources>
+    <style name="Base.Theme.KitMux" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Color -->
+        <item name="colorPrimary">@color/color_primary</item>
+        <item name="colorOnPrimary">@color/color_on_primary</item>
+        <item name="colorPrimaryContainer">@color/color_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/color_on_primary_container</item>
+        <item name="colorPrimaryInverse">@color/brand_orange</item>
+        <item name="colorSecondary">@color/color_secondary</item>
+        <item name="colorOnSecondary">@color/color_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/color_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/color_on_secondary_container</item>
+        <item name="colorTertiary">@color/color_secondary</item>
+        <item name="colorOnTertiary">@color/color_on_secondary</item>
+        <item name="colorTertiaryContainer">@color/color_secondary_container</item>
+        <item name="colorOnTertiaryContainer">@color/color_on_secondary_container</item>
+        <item name="android:colorBackground">@color/color_surface</item>
+        <item name="colorOnBackground">@color/color_on_surface</item>
+        <item name="colorSurface">@color/color_surface</item>
+        <item name="colorOnSurface">@color/color_on_surface</item>
+        <item name="colorSurfaceVariant">@color/color_surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/color_on_surface_variant</item>
+        <item name="colorSurfaceContainerLowest">@color/color_surface_container_lowest</item>
+        <item name="colorSurfaceContainerLow">@color/color_surface_container_low</item>
+        <item name="colorSurfaceContainer">@color/color_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/color_surface_container_high</item>
+        <item name="colorSurfaceContainerHighest">@color/color_surface_container_highest</item>
+        <item name="colorSurfaceBright">@color/color_surface</item>
+        <item name="colorSurfaceDim">@color/color_surface_container_highest</item>
+        <item name="colorOutline">@color/color_outline</item>
+        <item name="colorOutlineVariant">@color/color_outline_variant</item>
+        <item name="colorError">@color/color_error</item>
+        <item name="colorOnError">@color/color_on_error</item>
+
+        <!-- Forma -->
+        <item name="shapeAppearanceCornerExtraSmall">@style/ShapeAppearance.KitMux.ExtraSmall</item>
+        <item name="shapeAppearanceCornerSmall">@style/ShapeAppearance.KitMux.Small</item>
+        <item name="shapeAppearanceCornerMedium">@style/ShapeAppearance.KitMux.Medium</item>
+        <item name="shapeAppearanceCornerLarge">@style/ShapeAppearance.KitMux.Large</item>
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.KitMux.ExtraLarge</item>
+
+        <!-- Barras del sistema -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
+    </style>
+
+    <style name="Theme.KitMux" parent="Base.Theme.KitMux" />
+
+    <style name="ShapeAppearance.KitMux.ExtraSmall" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_xs</item>
+    </style>
+    <style name="ShapeAppearance.KitMux.Small" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_s</item>
+    </style>
+    <style name="ShapeAppearance.KitMux.Medium" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_m</item>
+    </style>
+    <style name="ShapeAppearance.KitMux.Large" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_l</item>
+    </style>
+    <style name="ShapeAppearance.KitMux.ExtraLarge" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/radius_xl</item>
+    </style>
+    <!-- Panel inferior: solo esquinas superiores redondeadas -->
+    <style name="ShapeAppearance.KitMux.BottomPanel" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/radius_xl</item>
+        <item name="cornerSizeTopRight">@dimen/radius_xl</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+</resources>
