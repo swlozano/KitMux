@@ -74,3 +74,12 @@ El script encuentra el teléfono por mDNS y solo envía las diferencias, tambié
 ./gradlew test                                             # app (JVM)
 cd tools/kitmux_sync && .venv/bin/python -m unittest       # script del PC (incluye un teléfono simulado)
 ```
+
+## Licencia
+
+KitMux se distribuye bajo la [PolyForm Noncommercial License 1.0.0](LICENSE.md):
+
+- **Gratis para uso no comercial** (personal, educativo, investigación, sin ánimo de lucro), siempre manteniendo el aviso de autoría.
+- **El uso comercial requiere una licencia de pago.** Consulta [COMMERCIAL.md](COMMERCIAL.md).
+
+Copyright (c) 2026 Alejandro Lozano Medina.
