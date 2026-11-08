@@ -37,6 +37,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.common.util.concurrent.ListenableFuture
 import com.kitsudo.kitmux.R
 import com.kitsudo.kitmux.data.Folder
@@ -102,6 +103,11 @@ class MainActivity : AppCompatActivity() {
 
         binding.songList.adapter = songAdapter
         binding.folderList.adapter = folderAdapter
+        binding.folderList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) folderAdapter.closeOpenRow()
+            }
+        })
         onBackPressedDispatcher.addCallback(this, closeFolderOnBack)
 
         lifecycleScope.launch {

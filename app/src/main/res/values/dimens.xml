@@ -23,6 +23,7 @@
     <dimen name="size_artwork_m">48dp</dimen>
     <dimen name="size_folder_play">44dp</dimen>
     <dimen name="grid_cell_min_width">160dp</dimen>
+    <dimen name="swipe_reveal_width">88dp</dimen>
     <dimen name="size_play_button">64dp</dimen>
     <dimen name="size_toolbar_logo">22dp</dimen>
 </resources>

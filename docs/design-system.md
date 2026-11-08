@@ -34,7 +34,7 @@ En layouts usa siempre los atributos del tema (`?attr/colorPrimary`, `?attr/colo
 
 - Espaciado (escala de 4dp): `space_xxs` 2 · `space_xs` 4 · `space_s` 8 · `space_m` 12 · `space_l` 16 · `space_xl` 24 · `space_xxl` 32.
 - Radios: `radius_xs` 4 · `radius_s` 8 · `radius_m` 12 · `radius_l` 16 · `radius_xl` 28. Están conectados a las formas de Material (`shapeAppearanceCorner*`). El panel inferior usa `ShapeAppearance.KitMux.BottomPanel`, con solo las esquinas superiores redondeadas.
-- Tamaños: `size_touch` 48 (mínimo táctil) · `size_icon` 24 · `size_icon_l` 48 · `size_artwork_s` 44 (canción) · `size_artwork_m` 48 (carpeta en lista) · `size_folder_play` 44 · `size_play_button` 64 · `size_toolbar_logo` 22 · `grid_cell_min_width` 160 (ancho mínimo de una celda de la cuadrícula; mínimo 2 columnas).
+- Tamaños: `size_touch` 48 (mínimo táctil) · `size_icon` 24 · `size_icon_l` 48 · `size_artwork_s` 44 (canción) · `size_artwork_m` 48 (carpeta en lista) · `size_folder_play` 44 · `size_play_button` 64 · `size_toolbar_logo` 22 · `grid_cell_min_width` 160 (ancho mínimo de una celda de la cuadrícula; mínimo 2 columnas) · `swipe_reveal_width` 88 (acciones reveladas al deslizar).
 
 ## Tipografía (`values/type.xml`)
 
@@ -48,14 +48,14 @@ Escala de Material 3 con la fuente del sistema. Estilos con su color ya incluido
 
 - `Widget.KitMux.PlayerButton`: botón secundario del reproductor. Inactivo en `colorOnSurfaceVariant`; activo (aleatorio, repetir) en `colorPrimary`.
 - `Widget.KitMux.PlayerButton.Play`: círculo naranja de marca de 64dp con icono blanco.
-- `Widget.KitMux.FolderPlayButton`: círculo de 44dp que reproduce una carpeta. En reposo es gris: fondo `secondaryContainer` con icono `colorSecondary` (gris del logo). La carpeta seleccionada (sonando o en pausa) pasa a `color_brand` (naranja intenso) con icono blanco. En la lista va al final de la fila; en la cuadrícula, abajo a la derecha de la portada. Si esa carpeta está sonando muestra ⏸.
+- `Widget.KitMux.FolderPlayButton`: círculo de 44dp que reproduce una carpeta. En la cuadrícula es gris en reposo (fondo `secondaryContainer`, icono `colorSecondary`) y pasa a `color_brand` (naranja intenso, icono blanco) en la carpeta seleccionada. En la lista, donde solo aparece al deslizar, siempre es `color_brand`. En la cuadrícula va visible abajo a la derecha de la portada. En la lista está oculto y aparece al deslizar la fila de derecha a izquierda (`SwipeRevealLayout`, panel de `swipe_reveal_width` 88dp sobre `surfaceContainerHigh`). Para TalkBack también se ofrece como acción de accesibilidad. Si esa carpeta está sonando muestra ⏸.
 - Carpeta (`item_folder_list` / `item_folder_grid`) y canción (`item_song`): icono en un contenedor `surfaceContainerHighest`. El elemento que suena pasa a `primaryContainer`, con el título en `colorPrimary` y en negrita.
 - `Widget.KitMux.Banner.Button`: botón de texto dentro de un aviso `primaryContainer`.
 - `bg_rounded_m` / `bg_rounded_l`: fondos redondeados; el color se pone con `backgroundTint`. `bg_selectable_rounded`: ripple redondeado para las celdas de la cuadrícula.
 
 ## Pantallas
 
-- **Inicio**: carpetas en lista o cuadrícula. El botón de la barra cambia de vista y la elección se guarda. La barra muestra el logo y «N carpetas · M canciones».
+- **Inicio**: carpetas en lista o cuadrícula. En la lista, deslizar una carpeta a la izquierda muestra ▶; solo una fila abierta a la vez, y se cierra al tocarla o al desplazar la lista. El botón de la barra cambia de vista y la elección se guarda. La barra muestra el logo y «N carpetas · M canciones».
 - **Carpeta**: al tocar una carpeta se ven sus canciones. La barra muestra la flecha de volver, el nombre y el número de canciones. «Atrás» vuelve al inicio.
 - **Reproductor**: panel inferior común a ambas pantallas.
 

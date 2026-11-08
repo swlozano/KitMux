@@ -10,6 +10,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -18,7 +19,10 @@ import com.google.android.material.color.MaterialColors
 import com.kitsudo.kitmux.R
 import com.kitsudo.kitmux.data.Folder
 
-/** Carpetas en lista o cuadrícula; cada una con su botón de reproducir. */
+/**
+ * Carpetas en lista o cuadrícula.
+ * Cuadrícula: botón ▶ visible abajo a la derecha. Lista: el ▶ aparece al deslizar la fila a la izquierda.
+ */
 class FolderAdapter(
     private val onOpen: (Folder) -> Unit,
     private val onPlay: (Folder) -> Unit,
@@ -29,8 +33,28 @@ class FolderAdapter(
         set(value) {
             if (field == value) return
             field = value
+            openPath = null
             notifyDataSetChanged()
         }
+
+    /** Fila de la lista que está deslizada (solo una a la vez). */
+    private var openPath: String? = null
+
+    /** Cierra la fila deslizada, si la hay (p. ej. al desplazar la lista). */
+    fun closeOpenRow() {
+        val path = openPath ?: return
+        openPath = null
+        currentList.indexOfFirst { it.path == path }.takeIf { it >= 0 }?.let { notifyItemChanged(it, PAYLOAD_CLOSE) }
+    }
+
+    private fun onRowOpenChanged(folder: Folder, open: Boolean) {
+        if (open) {
+            if (openPath != folder.path) closeOpenRow()
+            openPath = folder.path
+        } else if (openPath == folder.path) {
+            openPath = null
+        }
+    }
 
     private var playingFolder: String? = null
     private var isPlaying = false
@@ -53,16 +77,43 @@ class FolderAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) = holder.bind(getItem(position))
 
+    override fun onBindViewHolder(holder: Holder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isNotEmpty() && payloads.all { it == PAYLOAD_CLOSE }) {
+            holder.swipe?.setOpen(open = false, animate = true)
+        } else {
+            holder.bind(getItem(position))
+        }
+    }
+
     inner class Holder(view: View) : RecyclerView.ViewHolder(view) {
         private val iconContainer: View? = view.findViewById(R.id.iconContainer)
         private val icon: ImageView? = view.findViewById(R.id.icon)
         private val title: TextView = view.findViewById(R.id.title)
         private val subtitle: TextView = view.findViewById(R.id.subtitle)
         private val play: ImageButton = view.findViewById(R.id.play)
+        val swipe: SwipeRevealLayout? = view.findViewById(R.id.swipe)
+        private val front: View = view.findViewById(R.id.front) ?: view
+        private var playActionId = View.NO_ID
 
         init {
-            view.setOnClickListener { currentFolder()?.let(onOpen) }
-            play.setOnClickListener { currentFolder()?.let(onPlay) }
+            front.setOnClickListener {
+                // Con la fila deslizada, tocarla solo la cierra.
+                if (swipe?.isOpen == true) {
+                    swipe.setOpen(open = false, animate = true)
+                    currentFolder()?.let { onRowOpenChanged(it, false) }
+                } else {
+                    currentFolder()?.let(onOpen)
+                }
+            }
+            play.setOnClickListener {
+                val folder = currentFolder() ?: return@setOnClickListener
+                onPlay(folder)
+                if (swipe != null) {
+                    swipe.setOpen(open = false, animate = true)
+                    onRowOpenChanged(folder, false)
+                }
+            }
+            swipe?.onOpenChanged = { open -> currentFolder()?.let { onRowOpenChanged(it, open) } }
         }
 
         private fun currentFolder(): Folder? =
@@ -81,19 +132,31 @@ class FolderAdapter(
             val current = folder.path == playingFolder
             val playingHere = current && isPlaying
             play.setImageResource(if (playingHere) R.drawable.ic_pause else R.drawable.ic_play)
-            // Seleccionada (la que suena o está en pausa): naranja intenso de marca. Resto: gris.
+            // Naranja intenso de marca: carpeta seleccionada (sonando o en pausa) y siempre en la lista,
+            // donde el botón solo aparece al deslizar. En la cuadrícula, el resto va en gris.
+            val brand = current || swipe != null
             val ctxColor = { res: Int -> ContextCompat.getColor(ctx, res) }
             play.backgroundTintList = ColorStateList.valueOf(
-                if (current) ctxColor(R.color.color_brand) else color(com.google.android.material.R.attr.colorSecondaryContainer),
+                if (brand) ctxColor(R.color.color_brand) else color(com.google.android.material.R.attr.colorSecondaryContainer),
             )
             ImageViewCompat.setImageTintList(
                 play,
                 ColorStateList.valueOf(
-                    if (current) ctxColor(R.color.color_on_brand) else color(com.google.android.material.R.attr.colorSecondary),
+                    if (brand) ctxColor(R.color.color_on_brand) else color(com.google.android.material.R.attr.colorSecondary),
                 ),
             )
-            play.elevation = if (current) ctx.resources.displayMetrics.density * 2 else 0f
+            play.elevation = if (brand) ctx.resources.displayMetrics.density * 2 else 0f
             play.contentDescription = ctx.getString(if (playingHere) R.string.folder_pause else R.string.folder_play, folder.name)
+
+            swipe?.setOpen(open = folder.path == openPath, animate = false)
+            if (swipe != null) {
+                // El gesto no es accesible: TalkBack ofrece la misma acción en el menú de acciones.
+                if (playActionId != View.NO_ID) ViewCompat.removeAccessibilityAction(front, playActionId)
+                playActionId = ViewCompat.addAccessibilityAction(front, play.contentDescription) { _, _ ->
+                    onPlay(folder)
+                    true
+                }
+            }
 
             title.setTextColor(color(if (current) androidx.appcompat.R.attr.colorPrimary else com.google.android.material.R.attr.colorOnSurface))
             title.setTypeface(null, if (current) Typeface.BOLD else Typeface.NORMAL)
@@ -106,6 +169,10 @@ class FolderAdapter(
         }
 
         private fun color(attr: Int) = MaterialColors.getColor(itemView, attr)
+    }
+
+    private companion object {
+        const val PAYLOAD_CLOSE = "close"
     }
 
     private object Diff : DiffUtil.ItemCallback<Folder>() {
