@@ -77,5 +77,16 @@
                 android:textAppearance="@style/TextAppearance.KitMux.ListSubtitle"
                 tools:text="12 canciones · Music" />
         </LinearLayout>
+
+        <!-- Visible solo en «Ocultar carpetas»; la fila entera alterna la casilla. -->
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/check"
+            android:layout_width="@dimen/size_checkbox"
+            android:layout_height="@dimen/size_checkbox"
+            android:clickable="false"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </LinearLayout>
 </com.kitsudo.kitmux.ui.SwipeRevealLayout>

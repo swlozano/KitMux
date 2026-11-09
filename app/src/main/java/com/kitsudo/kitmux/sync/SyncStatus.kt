@@ -17,6 +17,8 @@ object SyncStatus {
         val address: String? = null,
         val pairingCode: String? = null,
         val lastActivity: String? = null,
+        /** Hay archivos llegando del PC ahora mismo (o hace menos de unos segundos). */
+        val transferring: Boolean = false,
     )
 
     private val _state = MutableStateFlow(State())

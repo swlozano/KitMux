@@ -38,6 +38,13 @@ object LibraryUtils {
 
     fun titleFromFileName(name: String): String = name.substringBeforeLast('.').ifEmpty { name }
 
+    /** Carpetas visibles y ocultas, conservando el orden original. */
+    fun splitHidden(folders: List<Folder>, hidden: Set<String>): Pair<List<Folder>, List<Folder>> =
+        folders.partition { it.path !in hidden }
+
+    /** Aplica el resultado de «Ocultar carpetas»: añade las seleccionadas a las ya ocultas. */
+    fun hide(hidden: Set<String>, selection: Set<String>): Set<String> = hidden + selection
+
     fun formatDuration(ms: Long): String {
         if (ms <= 0) return "0:00"
         val totalSeconds = ms / 1000

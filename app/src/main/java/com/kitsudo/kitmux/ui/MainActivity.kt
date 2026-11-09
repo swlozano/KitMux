@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Build
@@ -23,6 +25,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.widget.ImageViewCompat
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.snackbar.Snackbar
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -54,12 +57,39 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
     private val songAdapter = SongAdapter(::onSongClicked)
-    private val folderAdapter = FolderAdapter(onOpen = { viewModel.openFolder(it.path) }, onPlay = ::onFolderPlay)
+    private val folderAdapter = FolderAdapter(
+        onOpen = { viewModel.openFolder(it.path) },
+        onPlay = ::onFolderPlay,
+        onToggleSelection = { viewModel.toggleSelection(it.path) },
+    )
+    private val hiddenAdapter = HiddenFolderAdapter(
+        onOpen = { viewModel.openFolder(it.path) },
+        onUnhide = ::onUnhide,
+    )
     private var renderedLayout: FolderLayout? = null
 
-    /** Con una carpeta abierta, «atrás» vuelve a la lista de carpetas. */
-    private val closeFolderOnBack = object : OnBackPressedCallback(false) {
-        override fun handleOnBackPressed() = viewModel.closeFolder()
+    /** Pantallas de la actividad (derivadas de [LibraryState]). */
+    private enum class Screen { HOME, SELECT_HIDDEN, HIDDEN, FOLDER }
+
+    private fun screenOf(state: LibraryState) = when {
+        state.openFolder != null -> Screen.FOLDER
+        state.homeMode == HomeMode.SELECT_HIDDEN -> Screen.SELECT_HIDDEN
+        state.homeMode == HomeMode.SHOW_HIDDEN -> Screen.HIDDEN
+        else -> Screen.HOME
+    }
+
+    /** Flecha / ✕ de la barra y botón «atrás»: salir de la pantalla actual hacia el inicio. */
+    private fun navigateUp() {
+        when (screenOf(viewModel.state.value)) {
+            Screen.FOLDER -> viewModel.closeFolder()
+            Screen.SELECT_HIDDEN -> viewModel.cancelHideSelection()
+            Screen.HIDDEN -> viewModel.exitHiddenFolders()
+            Screen.HOME -> Unit
+        }
+    }
+
+    private val backToHome = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = navigateUp()
     }
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -108,7 +138,10 @@ class MainActivity : AppCompatActivity() {
                 if (newState == RecyclerView.SCROLL_STATE_DRAGGING) folderAdapter.closeOpenRow()
             }
         })
-        onBackPressedDispatcher.addCallback(this, closeFolderOnBack)
+        binding.hiddenList.adapter = hiddenAdapter
+        binding.selectionCancel.setOnClickListener { viewModel.cancelHideSelection() }
+        binding.selectionSave.setOnClickListener { onSaveHidden() }
+        onBackPressedDispatcher.addCallback(this, backToHome)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -165,18 +198,22 @@ class MainActivity : AppCompatActivity() {
 
     private var bottomInset = 0
 
-    /** La barra de navegación queda bajo el reproductor si está visible; si no, bajo la lista. */
+    /** La barra de navegación queda bajo el reproductor, o bajo la barra de selección, o bajo la lista. */
     private fun applyBottomInset() {
         val playerVisible = binding.miniPlayer.isVisible
+        val selectionVisible = binding.selectionBar.isVisible
+        val spaceS = resources.getDimensionPixelSize(R.dimen.space_s)
         binding.miniPlayerContent.updatePadding(bottom = resources.getDimensionPixelSize(R.dimen.space_m) + bottomInset)
-        val listBottom = resources.getDimensionPixelSize(R.dimen.space_s) + if (playerVisible) 0 else bottomInset
+        binding.selectionBar.updatePadding(bottom = spaceS + if (playerVisible) 0 else bottomInset)
+        val listBottom = spaceS + if (playerVisible || selectionVisible) 0 else bottomInset
         binding.songList.updatePadding(bottom = listBottom)
         binding.folderList.updatePadding(bottom = listBottom)
+        binding.hiddenList.updatePadding(bottom = listBottom)
     }
 
     private fun setupToolbar() {
         binding.toolbar.inflateMenu(R.menu.main)
-        binding.toolbar.setNavigationOnClickListener { viewModel.closeFolder() }
+        binding.toolbar.setNavigationOnClickListener { navigateUp() }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_layout -> {
@@ -196,6 +233,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.action_add_folder -> {
                     folderPicker.launch(null)
+                    true
+                }
+                R.id.action_hide_folders -> {
+                    viewModel.startHideSelection()
+                    true
+                }
+                R.id.action_show_hidden -> {
+                    viewModel.showHiddenFolders()
                     true
                 }
                 else -> false
@@ -229,12 +274,51 @@ class MainActivity : AppCompatActivity() {
     private fun renderSync(state: SyncStatus.State) {
         binding.toolbar.menu.findItem(R.id.action_sync)?.isChecked = state.enabled
         binding.syncBanner.isVisible = state.enabled
+        val transferring = state.transferring && state.address != null
         binding.syncText.text = when {
             state.address == null -> getString(R.string.sync_waiting_wifi)
             else -> buildString {
-                append(getString(R.string.sync_banner_ready, state.pairingCode.orEmpty()))
+                val title = if (transferring) R.string.sync_banner_transferring else R.string.sync_banner_ready
+                append(getString(title, state.pairingCode.orEmpty()))
                 state.lastActivity?.let { append('\n').append(it) }
             }
+        }
+        renderSyncColors(transferring)
+    }
+
+    private var syncBannerGreen: Boolean? = null
+
+    /** Verde mientras llegan archivos del PC; naranja claro de marca en espera. Transición suave. */
+    private fun renderSyncColors(transferring: Boolean) {
+        if (syncBannerGreen == transferring) return
+        val animate = syncBannerGreen != null && binding.syncBanner.isVisible
+        syncBannerGreen = transferring
+        val (bgTo, fgTo) = if (transferring) {
+            ContextCompat.getColor(this, R.color.color_success_container) to
+                ContextCompat.getColor(this, R.color.color_on_success_container)
+        } else {
+            MaterialColors.getColor(binding.syncBanner, com.google.android.material.R.attr.colorPrimaryContainer) to
+                MaterialColors.getColor(binding.syncBanner, com.google.android.material.R.attr.colorOnPrimaryContainer)
+        }
+        val bgFrom = binding.syncBanner.backgroundTintList?.defaultColor ?: bgTo
+        val fgFrom = binding.syncText.currentTextColor
+        val apply = { fraction: Float ->
+            val evaluator = ArgbEvaluator()
+            val bg = evaluator.evaluate(fraction, bgFrom, bgTo) as Int
+            val fg = evaluator.evaluate(fraction, fgFrom, fgTo) as Int
+            binding.syncBanner.backgroundTintList = ColorStateList.valueOf(bg)
+            binding.syncText.setTextColor(fg)
+            binding.syncStop.setTextColor(fg)
+            ImageViewCompat.setImageTintList(binding.syncIcon, ColorStateList.valueOf(fg))
+        }
+        if (animate) {
+            ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()
+                addUpdateListener { apply(it.animatedFraction) }
+                start()
+            }
+        } else {
+            apply(1f)
         }
     }
 
@@ -272,29 +356,44 @@ class MainActivity : AppCompatActivity() {
     // region Library
 
     private fun render(state: LibraryState) {
-        val home = state.openFolder == null
-        closeFolderOnBack.isEnabled = !home
+        val screen = screenOf(state)
+        backToHome.isEnabled = screen != Screen.HOME
         binding.progress.isVisible = state.scanning
-        renderToolbar(state, home)
+        renderToolbar(state, screen)
 
         if (state.folderLayout != renderedLayout) applyFolderLayout(state.folderLayout)
-        folderAdapter.submitList(state.folders)
+        folderAdapter.selectionMode = screen == Screen.SELECT_HIDDEN
+        folderAdapter.selected = state.selection
+        folderAdapter.submitList(state.visibleFolders)
+        hiddenAdapter.submitList(state.hiddenFolderList)
         songAdapter.submitList(state.openFolderSongs)
-        binding.folderList.isVisible = home
-        binding.songList.isVisible = !home
+        binding.folderList.isVisible = screen == Screen.HOME || screen == Screen.SELECT_HIDDEN
+        binding.hiddenList.isVisible = screen == Screen.HIDDEN
+        binding.songList.isVisible = screen == Screen.FOLDER
 
-        binding.emptyView.isVisible = home && state.folders.isEmpty()
-        binding.emptyView.text = getString(
-            when {
-                state.scanning -> R.string.scanning
-                !state.hasAudioPermission -> R.string.empty_no_permission
-                else -> R.string.empty_no_music
-            },
-        )
+        val selecting = screen == Screen.SELECT_HIDDEN
+        if (binding.selectionBar.isVisible != selecting) {
+            binding.selectionBar.isVisible = selecting
+            applyBottomInset()
+        }
+        binding.selectionSave.isEnabled = state.selection.isNotEmpty()
+
+        val emptyText = when {
+            state.scanning -> R.string.scanning
+            screen == Screen.HIDDEN -> R.string.empty_no_hidden.takeIf { state.hiddenFolderList.isEmpty() }
+            screen == Screen.FOLDER -> null
+            state.visibleFolders.isNotEmpty() -> null
+            !state.hasAudioPermission && state.folders.isEmpty() -> R.string.empty_no_permission
+            state.folders.isNotEmpty() -> R.string.empty_all_hidden
+            else -> R.string.empty_no_music
+        }
+        binding.emptyView.isVisible = emptyText != null
+        emptyText?.let { binding.emptyView.setText(it) }
         updatePlayerUi()
     }
 
-    private fun renderToolbar(state: LibraryState, home: Boolean) = with(binding.toolbar) {
+    private fun renderToolbar(state: LibraryState, screen: Screen) = with(binding.toolbar) {
+        val home = screen == Screen.HOME
         binding.logoBlock.isVisible = home
         menu.findItem(R.id.action_layout)?.apply {
             isVisible = home
@@ -302,21 +401,78 @@ class MainActivity : AppCompatActivity() {
             setIcon(if (grid) R.drawable.ic_view_list else R.drawable.ic_grid_view)
             title = getString(if (grid) R.string.view_as_list else R.string.view_as_grid)
         }
-        if (home) {
-            title = null
-            subtitle = null
-            navigationIcon = null
-            val folders = resources.getQuantityString(R.plurals.folder_count, state.folders.size, state.folders.size)
-            val songs = resources.getQuantityString(R.plurals.song_count, state.songs.size, state.songs.size)
-            binding.songCount.isVisible = state.songs.isNotEmpty()
-            binding.songCount.text = getString(R.string.library_summary, folders, songs)
-        } else {
-            val folder = state.folders.firstOrNull { it.path == state.openFolder }
-            title = folder?.name
-            subtitle = resources.getQuantityString(R.plurals.song_count, state.openFolderSongs.size, state.openFolderSongs.size)
-            setNavigationIcon(R.drawable.ic_arrow_back)
-            setNavigationContentDescription(R.string.back)
+        val libraryActions = home || screen == Screen.FOLDER
+        menu.findItem(R.id.action_add_folder)?.isVisible = libraryActions
+        menu.findItem(R.id.action_rescan)?.isVisible = libraryActions
+        menu.findItem(R.id.action_sync)?.isVisible = libraryActions
+        menu.findItem(R.id.action_hide_folders)?.isVisible = home && state.visibleFolders.isNotEmpty()
+        menu.findItem(R.id.action_show_hidden)?.apply {
+            isVisible = home && state.hiddenFolderList.isNotEmpty()
+            title = getString(R.string.show_hidden_folders, state.hiddenFolderList.size)
         }
+
+        when (screen) {
+            Screen.HOME -> {
+                title = null
+                subtitle = null
+                navigationIcon = null
+                val visibleSongs = state.visibleFolders.sumOf { it.songCount }
+                val folders = resources.getQuantityString(R.plurals.folder_count, state.visibleFolders.size, state.visibleFolders.size)
+                val songs = resources.getQuantityString(R.plurals.song_count, visibleSongs, visibleSongs)
+                binding.songCount.isVisible = visibleSongs > 0
+                binding.songCount.text = getString(R.string.library_summary, folders, songs)
+            }
+            Screen.SELECT_HIDDEN -> {
+                title = getString(R.string.hide_folders)
+                subtitle = if (state.selection.isEmpty()) {
+                    getString(R.string.hide_folders_hint)
+                } else {
+                    resources.getQuantityString(R.plurals.selected_count, state.selection.size, state.selection.size)
+                }
+                setNavigationIcon(R.drawable.ic_close)
+                setNavigationContentDescription(R.string.hide_cancel)
+            }
+            Screen.HIDDEN -> {
+                title = getString(R.string.hidden_folders)
+                subtitle = resources.getQuantityString(R.plurals.folder_count, state.hiddenFolderList.size, state.hiddenFolderList.size)
+                setNavigationIcon(R.drawable.ic_arrow_back)
+                setNavigationContentDescription(R.string.back)
+            }
+            Screen.FOLDER -> {
+                val folder = state.folders.firstOrNull { it.path == state.openFolder }
+                title = folder?.name
+                subtitle = resources.getQuantityString(R.plurals.song_count, state.openFolderSongs.size, state.openFolderSongs.size)
+                setNavigationIcon(R.drawable.ic_arrow_back)
+                setNavigationContentDescription(R.string.back)
+            }
+        }
+    }
+
+    /** «Guardar» en «Ocultar carpetas»: oculta las marcadas y ofrece deshacer. */
+    private fun onSaveHidden() {
+        val newlyHidden = viewModel.saveHiddenSelection()
+        if (newlyHidden.isEmpty()) return
+        snackbar(resources.getQuantityString(R.plurals.folders_hidden, newlyHidden.size, newlyHidden.size)) {
+            viewModel.unhide(newlyHidden)
+        }
+    }
+
+    /** «Mostrar» en «Carpetas ocultas»: vuelve al inicio, con opción de deshacer. */
+    private fun onUnhide(folder: Folder) {
+        viewModel.unhide(setOf(folder.path))
+        snackbar(getString(R.string.folder_shown_again, folder.name)) { viewModel.hide(setOf(folder.path)) }
+    }
+
+    private fun snackbar(message: String, undo: () -> Unit) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+            .setAction(R.string.undo) { undo() }
+            .apply {
+                when {
+                    binding.miniPlayer.isVisible -> anchorView = binding.miniPlayer
+                    binding.selectionBar.isVisible -> anchorView = binding.selectionBar
+                }
+            }
+            .show()
     }
 
     private fun applyFolderLayout(layout: FolderLayout) {

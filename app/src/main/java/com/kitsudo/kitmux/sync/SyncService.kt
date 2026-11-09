@@ -126,6 +126,21 @@ class SyncService : Service() {
 
     private var currentPort: Int? = null
 
+    // Transferencias en curso. El aviso sigue en verde unos segundos tras la última,
+    // para que no parpadee entre un archivo y el siguiente de la misma sincronización.
+    private var activeTransfers = 0
+    private val transferIdle = Runnable { SyncStatus.update { it.copy(transferring = false) } }
+
+    private fun onTransfer(started: Boolean) {
+        activeTransfers = (activeTransfers + if (started) 1 else -1).coerceAtLeast(0)
+        mainHandler.removeCallbacks(transferIdle)
+        if (activeTransfers > 0) {
+            SyncStatus.update { it.copy(transferring = true) }
+        } else {
+            mainHandler.postDelayed(transferIdle, TRANSFER_HOLD_MS)
+        }
+    }
+
     private fun startServer() {
         val server = SyncServer(
             storage = SyncStorage.create(this),
@@ -138,6 +153,7 @@ class SyncService : Service() {
                 SyncStatus.update { it.copy(lastActivity = message) }
                 mainHandler.post(::refreshNotification)
             },
+            onTransfer = { started -> mainHandler.post { onTransfer(started) } },
         )
         val httpServer = MiniHttpServer(server::handle) { Log.w(TAG, "Error en petición", it) }
         val port = try {
@@ -158,6 +174,9 @@ class SyncService : Service() {
     private fun stopServer() {
         registration?.let { runCatching { nsd.unregisterService(it) } }
         registration = null
+        mainHandler.removeCallbacks(transferIdle)
+        activeTransfers = 0
+        SyncStatus.update { it.copy(transferring = false) }
         http?.stop()
         http = null
         syncServer = null
@@ -227,6 +246,7 @@ class SyncService : Service() {
         private const val NOTIFICATION_ID = 2001
         private const val ACTION_STOP = "com.kitsudo.kitmux.sync.STOP"
         const val SERVICE_TYPE = "_kitmux._tcp"
+        private const val TRANSFER_HOLD_MS = 3_000L
 
         fun start(context: Context) =
             ContextCompat.startForegroundService(context, Intent(context, SyncService::class.java))

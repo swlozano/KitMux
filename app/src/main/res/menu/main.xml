@@ -21,4 +21,12 @@
         android:checkable="true"
         android:title="@string/sync_receive"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_hide_folders"
+        android:title="@string/hide_folders"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_show_hidden"
+        android:title="@string/hidden_folders"
+        app:showAsAction="never" />
 </menu>

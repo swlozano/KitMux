@@ -29,12 +29,26 @@ import java.util.Locale
 
 enum class FolderLayout { LIST, GRID }
 
+/** Qué muestra la pantalla inicial (cuando no hay una carpeta abierta). */
+enum class HomeMode {
+    NORMAL,
+    /** «Ocultar carpetas»: casillas para elegir cuáles ocultar. */
+    SELECT_HIDDEN,
+    /** «Ver carpetas ocultas»: lista de ocultas con «Mostrar». */
+    SHOW_HIDDEN,
+}
+
 data class LibraryState(
     val songs: List<Song> = emptyList(),
     val folders: List<Folder> = emptyList(),
     /** Carpeta abierta (pantalla de canciones); null = pantalla inicial de carpetas. */
     val openFolder: String? = null,
     val folderLayout: FolderLayout = FolderLayout.LIST,
+    val homeMode: HomeMode = HomeMode.NORMAL,
+    /** Rutas de carpetas ocultas por el usuario (persistidas). */
+    val hiddenFolders: Set<String> = emptySet(),
+    /** Carpetas marcadas en el modo «Ocultar carpetas» (sin guardar todavía). */
+    val selection: Set<String> = emptySet(),
     val scanning: Boolean = false,
     val scannedOnce: Boolean = false,
     val hasAudioPermission: Boolean = false,
@@ -46,6 +60,10 @@ data class LibraryState(
     val folderOfSong: Map<String, String> = songs.associate { it.id to it.folder }
 
     fun songsIn(folder: String): List<Song> = songs.filter { it.folder == folder }
+
+    private val split = LibraryUtils.splitHidden(folders, hiddenFolders)
+    val visibleFolders: List<Folder> = split.first
+    val hiddenFolderList: List<Folder> = split.second
 }
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -59,6 +77,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         LibraryState(
             folderLayout = runCatching { FolderLayout.valueOf(uiPrefs.getString(KEY_LAYOUT, null)!!) }
                 .getOrDefault(FolderLayout.LIST),
+            hiddenFolders = uiPrefs.getStringSet(KEY_HIDDEN, emptySet()).orEmpty().toSet(),
         ),
     )
     val state: StateFlow<LibraryState> = _state.asStateFlow()
@@ -117,6 +136,50 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         _state.update { it.copy(openFolder = null) }
     }
 
+    // --- Ocultar carpetas ---
+
+    fun startHideSelection() {
+        _state.update { it.copy(homeMode = HomeMode.SELECT_HIDDEN, selection = emptySet(), openFolder = null) }
+    }
+
+    fun toggleSelection(path: String) {
+        _state.update { it.copy(selection = if (path in it.selection) it.selection - path else it.selection + path) }
+    }
+
+    fun cancelHideSelection() {
+        _state.update { it.copy(homeMode = HomeMode.NORMAL, selection = emptySet()) }
+    }
+
+    /** Guarda la selección como ocultas y devuelve las que se acaban de ocultar (para «Deshacer»). */
+    fun saveHiddenSelection(): Set<String> {
+        val current = _state.value
+        val newlyHidden = current.selection - current.hiddenFolders
+        setHidden(LibraryUtils.hide(current.hiddenFolders, current.selection))
+        _state.update { it.copy(homeMode = HomeMode.NORMAL, selection = emptySet()) }
+        return newlyHidden
+    }
+
+    fun showHiddenFolders() {
+        _state.update { it.copy(homeMode = HomeMode.SHOW_HIDDEN, openFolder = null) }
+    }
+
+    fun exitHiddenFolders() {
+        _state.update { it.copy(homeMode = HomeMode.NORMAL) }
+    }
+
+    fun hide(paths: Set<String>) {
+        setHidden(LibraryUtils.hide(_state.value.hiddenFolders, paths))
+    }
+
+    fun unhide(paths: Set<String>) {
+        setHidden(_state.value.hiddenFolders - paths)
+    }
+
+    private fun setHidden(hidden: Set<String>) {
+        uiPrefs.edit { putStringSet(KEY_HIDDEN, hidden) }
+        _state.update { it.copy(hiddenFolders = hidden) }
+    }
+
     fun toggleFolderLayout() {
         val next = if (_state.value.folderLayout == FolderLayout.LIST) FolderLayout.GRID else FolderLayout.LIST
         uiPrefs.edit { putString(KEY_LAYOUT, next.name) }
@@ -125,6 +188,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private companion object {
         const val KEY_LAYOUT = "folder_layout"
+        const val KEY_HIDDEN = "hidden_folders"
     }
 
     private fun hasAudioPermission(): Boolean {

@@ -51,13 +51,16 @@ Escala de Material 3 con la fuente del sistema. Estilos con su color ya incluido
 - `Widget.KitMux.FolderPlayButton`: círculo de 44dp que reproduce una carpeta. En la cuadrícula es gris en reposo (fondo `secondaryContainer`, icono `colorSecondary`) y pasa a `color_brand` (naranja intenso, icono blanco) en la carpeta seleccionada. En la lista, donde solo aparece al deslizar, siempre es `color_brand`. En la cuadrícula va visible abajo a la derecha de la portada. En la lista está oculto y aparece al deslizar la fila de derecha a izquierda (`SwipeRevealLayout`, panel de `swipe_reveal_width` 88dp sobre `surfaceContainerHigh`). Para TalkBack también se ofrece como acción de accesibilidad. Si esa carpeta está sonando muestra ⏸.
 - Carpeta (`item_folder_list` / `item_folder_grid`) y canción (`item_song`): icono en un contenedor `surfaceContainerHighest`. El elemento que suena pasa a `primaryContainer`, con el título en `colorPrimary` y en negrita.
 - `Widget.KitMux.Banner.Button`: botón de texto dentro de un aviso `primaryContainer`.
+- Aviso «Recibir desde PC»: `primaryContainer` en espera; pasa a `color_success_container` / `color_on_success_container` (verde, sin rol Material equivalente) mientras llegan archivos, y el texto cambia a «Transfiriendo…» para no depender solo del color.
 - `bg_rounded_m` / `bg_rounded_l`: fondos redondeados; el color se pone con `backgroundTint`. `bg_selectable_rounded`: ripple redondeado para las celdas de la cuadrícula.
 
 ## Pantallas
 
 - **Inicio**: carpetas en lista o cuadrícula. En la lista, deslizar una carpeta a la izquierda muestra ▶; solo una fila abierta a la vez, y se cierra al tocarla o al desplazar la lista. El botón de la barra cambia de vista y la elección se guarda. La barra muestra el logo y «N carpetas · M canciones».
 - **Carpeta**: al tocar una carpeta se ven sus canciones. La barra muestra la flecha de volver, el nombre y el número de canciones. «Atrás» vuelve al inicio.
-- **Reproductor**: panel inferior común a ambas pantallas.
+- **Ocultar carpetas** (menú ⋮): la barra pasa a ✕ + «Ocultar carpetas» + nº de seleccionadas; cada carpeta muestra una casilla (`MaterialCheckBox`, al final de la fila en lista y arriba a la derecha de la portada en cuadrícula) y tocar la carpeta la marca. Abajo, barra `surfaceContainer` con «Cancelar» (texto) y «Guardar» (botón relleno, desactivado sin selección). Al guardar, `Snackbar` con «Deshacer».
+- **Carpetas ocultas** (menú ⋮ → «Ver carpetas ocultas (N)»): filas con icono `ic_folder_off` y botón tonal «Mostrar»; tocar la fila abre sus canciones.
+- **Reproductor**: panel inferior común a todas las pantallas.
 
 ## Reglas
 

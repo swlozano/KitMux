@@ -19,6 +19,7 @@
     <string name="sync_waiting_wifi">Recibir desde PC: conéctate a una red WiFi</string>
     <string name="sync_pairing_code">Código de emparejado: %1$s</string>
     <string name="sync_banner_ready">Recibiendo desde PC · código %1$s</string>
+    <string name="sync_banner_transferring">Transfiriendo archivos desde el PC · código %1$s</string>
     <string name="sync_stop">Detener</string>
     <string name="sync_needs_storage">Sin permiso de almacenamiento no se pueden guardar los archivos recibidos.</string>
     <string name="folder_subtitle">%1$s · %2$s</string>
@@ -28,6 +29,28 @@
     <string name="view_as_grid">Ver como cuadrícula</string>
     <string name="view_as_list">Ver como lista</string>
     <string name="back">Volver</string>
+    <string name="hide_folders">Ocultar carpetas</string>
+    <string name="hide_folders_hint">Toca las carpetas que quieras ocultar</string>
+    <string name="hide_save">Guardar</string>
+    <string name="hide_cancel">Cancelar</string>
+    <string name="hidden_folders">Carpetas ocultas</string>
+    <string name="show_hidden_folders">Ver carpetas ocultas (%1$d)</string>
+    <string name="unhide">Mostrar</string>
+    <string name="unhide_folder">Mostrar %1$s</string>
+    <string name="undo">Deshacer</string>
+    <string name="folder_shown_again">«%1$s» vuelve a mostrarse</string>
+    <string name="empty_all_hidden">Todas las carpetas están ocultas. Puedes verlas desde el menú, en «Ver carpetas ocultas».</string>
+    <string name="empty_no_hidden">No hay carpetas ocultas.</string>
+    <string name="state_selected">Seleccionada</string>
+    <string name="state_not_selected">No seleccionada</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d seleccionada</item>
+        <item quantity="other">%d seleccionadas</item>
+    </plurals>
+    <plurals name="folders_hidden">
+        <item quantity="one">%d carpeta oculta</item>
+        <item quantity="other">%d carpetas ocultas</item>
+    </plurals>
     <plurals name="folder_count">
         <item quantity="one">%d carpeta</item>
         <item quantity="other">%d carpetas</item>

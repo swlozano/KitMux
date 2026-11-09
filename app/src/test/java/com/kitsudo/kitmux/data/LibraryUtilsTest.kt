@@ -44,4 +44,18 @@ class LibraryUtilsTest {
         assertEquals("3:05", LibraryUtils.formatDuration(185_000))
         assertEquals("1:01:01", LibraryUtils.formatDuration(3_661_000))
     }
+
+    @Test
+    fun splitHidden_keepsOrderAndSeparates() {
+        val folders = listOf(Folder("Music/A", 1), Folder("Music/B", 2), Folder("Download/C", 3))
+        val (visible, hidden) = LibraryUtils.splitHidden(folders, setOf("Music/B", "No/Existe"))
+        assertEquals(listOf("Music/A", "Download/C"), visible.map { it.path })
+        assertEquals(listOf("Music/B"), hidden.map { it.path })
+    }
+
+    @Test
+    fun hide_addsSelectionToExisting() {
+        assertEquals(setOf("A", "B", "C"), LibraryUtils.hide(setOf("A"), setOf("B", "C")))
+        assertEquals(setOf("A"), LibraryUtils.hide(setOf("A"), emptySet()))
+    }
 }

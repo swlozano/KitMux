@@ -6,11 +6,13 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
+import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -26,6 +28,7 @@ import com.kitsudo.kitmux.data.Folder
 class FolderAdapter(
     private val onOpen: (Folder) -> Unit,
     private val onPlay: (Folder) -> Unit,
+    private val onToggleSelection: (Folder) -> Unit,
 ) : ListAdapter<Folder, FolderAdapter.Holder>(Diff) {
 
     var layout: FolderLayout = FolderLayout.LIST
@@ -35,6 +38,25 @@ class FolderAdapter(
             field = value
             openPath = null
             notifyDataSetChanged()
+        }
+
+    /** Modo «Ocultar carpetas»: casillas visibles, sin ▶ ni deslizamiento. */
+    var selectionMode = false
+        @SuppressLint("NotifyDataSetChanged") // cambian todas las filas
+        set(value) {
+            if (field == value) return
+            field = value
+            openPath = null
+            notifyDataSetChanged()
+        }
+
+    /** Carpetas marcadas en el modo de selección. */
+    var selected: Set<String> = emptySet()
+        set(value) {
+            if (field == value) return
+            val changed = (field - value) + (value - field)
+            field = value
+            currentList.forEachIndexed { i, f -> if (f.path in changed) notifyItemChanged(i, PAYLOAD_SELECTION) }
         }
 
     /** Fila de la lista que está deslizada (solo una a la vez). */
@@ -80,6 +102,8 @@ class FolderAdapter(
     override fun onBindViewHolder(holder: Holder, position: Int, payloads: MutableList<Any>) {
         if (payloads.isNotEmpty() && payloads.all { it == PAYLOAD_CLOSE }) {
             holder.swipe?.setOpen(open = false, animate = true)
+        } else if (payloads.isNotEmpty() && payloads.all { it == PAYLOAD_SELECTION }) {
+            holder.bindSelection(getItem(position))
         } else {
             holder.bind(getItem(position))
         }
@@ -93,10 +117,15 @@ class FolderAdapter(
         private val play: ImageButton = view.findViewById(R.id.play)
         val swipe: SwipeRevealLayout? = view.findViewById(R.id.swipe)
         private val front: View = view.findViewById(R.id.front) ?: view
+        private val check: CompoundButton = view.findViewById(R.id.check)
         private var playActionId = View.NO_ID
 
         init {
             front.setOnClickListener {
+                if (selectionMode) {
+                    currentFolder()?.let(onToggleSelection)
+                    return@setOnClickListener
+                }
                 // Con la fila deslizada, tocarla solo la cierra.
                 if (swipe?.isOpen == true) {
                     swipe.setOpen(open = false, animate = true)
@@ -148,10 +177,16 @@ class FolderAdapter(
             play.elevation = if (brand) ctx.resources.displayMetrics.density * 2 else 0f
             play.contentDescription = ctx.getString(if (playingHere) R.string.folder_pause else R.string.folder_play, folder.name)
 
-            swipe?.setOpen(open = folder.path == openPath, animate = false)
-            if (swipe != null) {
+            swipe?.swipeEnabled = !selectionMode
+            swipe?.setOpen(open = !selectionMode && folder.path == openPath, animate = false)
+            if (swipe == null) play.isVisible = !selectionMode // cuadrícula
+            bindSelection(folder)
+            if (playActionId != View.NO_ID) {
+                ViewCompat.removeAccessibilityAction(front, playActionId)
+                playActionId = View.NO_ID
+            }
+            if (swipe != null && !selectionMode) {
                 // El gesto no es accesible: TalkBack ofrece la misma acción en el menú de acciones.
-                if (playActionId != View.NO_ID) ViewCompat.removeAccessibilityAction(front, playActionId)
                 playActionId = ViewCompat.addAccessibilityAction(front, play.contentDescription) { _, _ ->
                     onPlay(folder)
                     true
@@ -168,11 +203,23 @@ class FolderAdapter(
             )
         }
 
+        fun bindSelection(folder: Folder) {
+            check.isVisible = selectionMode
+            val isChecked = folder.path in selected
+            check.isChecked = isChecked
+            ViewCompat.setStateDescription(
+                front,
+                if (!selectionMode) null
+                else itemView.context.getString(if (isChecked) R.string.state_selected else R.string.state_not_selected),
+            )
+        }
+
         private fun color(attr: Int) = MaterialColors.getColor(itemView, attr)
     }
 
     private companion object {
         const val PAYLOAD_CLOSE = "close"
+        const val PAYLOAD_SELECTION = "selection"
     }
 
     private object Diff : DiffUtil.ItemCallback<Folder>() {

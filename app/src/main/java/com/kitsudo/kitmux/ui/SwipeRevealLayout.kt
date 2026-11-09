@@ -24,6 +24,9 @@ class SwipeRevealLayout @JvmOverloads constructor(
     var isOpen = false
         private set
 
+    /** Desactiva el gesto (p. ej. en el modo de selección). */
+    var swipeEnabled = true
+
     private lateinit var back: View
     private lateinit var front: View
     private var offset = 0 // posición izquierda actual de la capa delantera (≤ 0)
@@ -32,7 +35,7 @@ class SwipeRevealLayout @JvmOverloads constructor(
     private val revealWidth: Int get() = back.width
 
     private val dragHelper = ViewDragHelper.create(this, 1f, object : ViewDragHelper.Callback() {
-        override fun tryCaptureView(child: View, pointerId: Int) = child === front
+        override fun tryCaptureView(child: View, pointerId: Int) = swipeEnabled && child === front
 
         override fun getViewHorizontalDragRange(child: View) = revealWidth
 
@@ -94,10 +97,12 @@ class SwipeRevealLayout @JvmOverloads constructor(
         if (dragHelper.continueSettling(true)) postInvalidateOnAnimation()
     }
 
-    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = dragHelper.shouldInterceptTouchEvent(ev)
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean =
+        swipeEnabled && dragHelper.shouldInterceptTouchEvent(ev)
 
     @Suppress("ClickableViewAccessibility") // los clics los gestiona la capa delantera
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!swipeEnabled) return super.onTouchEvent(event)
         dragHelper.processTouchEvent(event)
         return true
     }

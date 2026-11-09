@@ -21,6 +21,8 @@ class SyncServer(
     private val pairing: PairingStore,
     private val onPairingCodeChanged: (String) -> Unit,
     private val onActivity: (String) -> Unit,
+    /** true al empezar a recibir un archivo, false al terminar (bien o mal). */
+    private val onTransfer: (Boolean) -> Unit = {},
 ) {
     private val lock = Any()
     private var pairingCode = pairing.newPairingCode()
@@ -82,7 +84,12 @@ class SyncServer(
                 if (!LibraryUtils.isAudioFile(SyncPaths.name(path), null)) throw HttpException(415, "solo se aceptan archivos de audio")
                 val size = head.contentLength ?: throw HttpException(411, "se requiere Content-Length")
                 onActivity("Recibiendo $path")
-                storage.write(path, size, body)
+                onTransfer(true)
+                try {
+                    storage.write(path, size, body)
+                } finally {
+                    onTransfer(false)
+                }
                 changed("Recibido $path")
             }
             "DELETE" -> {

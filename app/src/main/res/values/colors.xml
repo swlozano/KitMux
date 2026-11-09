@@ -41,6 +41,8 @@
     <color name="color_surface_container_highest">#EDE7E5</color>
     <color name="color_outline">#85878A</color>
     <color name="color_outline_variant">#D8D2D0</color>
+    <color name="color_success_container">#B7F1B9</color>     <!-- aviso de transferencia en curso -->
+    <color name="color_on_success_container">#002107</color>
     <color name="color_error">#BA1A1A</color>
     <color name="color_on_error">#FFFFFF</color>
     <color name="splash_background">#FFFFFF</color>
