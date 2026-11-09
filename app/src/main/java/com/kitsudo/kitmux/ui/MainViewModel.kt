@@ -49,6 +49,8 @@ data class LibraryState(
     val hiddenFolders: Set<String> = emptySet(),
     /** Carpetas marcadas en el modo «Ocultar carpetas» (sin guardar todavía). */
     val selection: Set<String> = emptySet(),
+    /** Texto del buscador; null = buscador cerrado. */
+    val searchQuery: String? = null,
     val scanning: Boolean = false,
     val scannedOnce: Boolean = false,
     val hasAudioPermission: Boolean = false,
@@ -64,6 +66,23 @@ data class LibraryState(
     private val split = LibraryUtils.splitHidden(folders, hiddenFolders)
     val visibleFolders: List<Folder> = split.first
     val hiddenFolderList: List<Folder> = split.second
+
+    /**
+     * Canciones cuyo título, artista, álbum, archivo o carpeta coinciden. Con una carpeta abierta
+     * se busca solo en ella; si no, en todas las carpetas visibles.
+     */
+    val searchResults: List<Song> by lazy {
+        val query = searchQuery
+        if (query.isNullOrBlank()) return@lazy emptyList()
+        val scope = openFolder
+        songs.filter {
+            (if (scope != null) it.folder == scope else it.folder !in hiddenFolders) &&
+                LibraryUtils.matchesSearch(
+                    query,
+                    listOf(it.title, it.artist, it.album, it.displayName, LibraryUtils.folderDisplayName(it.folder)),
+                )
+        }
+    }
 }
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
@@ -134,6 +153,20 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun closeFolder() {
         _state.update { it.copy(openFolder = null) }
+    }
+
+    // --- Buscador ---
+
+    fun startSearch() {
+        _state.update { if (it.searchQuery != null) it else it.copy(searchQuery = "") }
+    }
+
+    fun setSearchQuery(query: String) {
+        _state.update { if (it.searchQuery == null || it.searchQuery == query) it else it.copy(searchQuery = query) }
+    }
+
+    fun closeSearch() {
+        _state.update { it.copy(searchQuery = null) }
     }
 
     // --- Ocultar carpetas ---

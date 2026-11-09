@@ -29,6 +29,15 @@
     <string name="library_summary">%1$s · %2$s</string>
     <string name="view_as_grid">Ver como cuadrícula</string>
     <string name="view_as_list">Ver como lista</string>
+    <string name="search">Buscar canciones</string>
+    <string name="close_search">Cerrar búsqueda</string>
+    <string name="search_hint">Título, artista, álbum o carpeta</string>
+    <string name="search_empty_hint">Escribe para buscar entre tus canciones.</string>
+    <string name="search_no_results">Ninguna canción coincide con «%1$s».</string>
+    <string name="search_in_folder_hint">Buscar en %1$s</string>
+    <string name="search_in_folder_empty_hint">Escribe para buscar entre las canciones de %1$s.</string>
+    <string name="search_in_folder_no_results">Ninguna canción de %1$s coincide con «%2$s».</string>
+    <string name="search_result_subtitle">%1$s · %2$s · %3$s</string>
     <string name="back">Volver</string>
     <string name="hide_folders">Ocultar carpetas</string>
     <string name="hide_folders_hint">Toca las carpetas que quieras ocultar</string>

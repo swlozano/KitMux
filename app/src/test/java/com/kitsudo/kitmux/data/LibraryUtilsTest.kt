@@ -58,4 +58,14 @@ class LibraryUtilsTest {
         assertEquals(setOf("A", "B", "C"), LibraryUtils.hide(setOf("A"), setOf("B", "C")))
         assertEquals(setOf("A"), LibraryUtils.hide(setOf("A"), emptySet()))
     }
+
+    @Test
+    fun matchesSearch_ignoresCaseAccentsAndWordOrder() {
+        val fields = listOf("Canción del Mar", "Los Ríos", null, "Music/Rock")
+        assertTrue(LibraryUtils.matchesSearch("cancion", fields))
+        assertTrue(LibraryUtils.matchesSearch("  MAR  rios ", fields))
+        assertTrue(LibraryUtils.matchesSearch("rock", fields))
+        assertFalse(LibraryUtils.matchesSearch("mar jazz", fields))
+        assertFalse(LibraryUtils.matchesSearch("   ", fields))
+    }
 }

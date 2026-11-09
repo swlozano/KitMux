@@ -40,6 +40,20 @@
                 tools:text="358 canciones"
                 tools:visibility="visible" />
         </LinearLayout>
+
+        <!-- Buscador: ocupa la barra en la pantalla de búsqueda (la flecha de la barra lo cierra). -->
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/searchField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:imeOptions="actionSearch|flagNoExtractUi"
+            android:visibility="gone"
+            app:iconifiedByDefault="false"
+            app:queryBackground="@android:color/transparent"
+            app:queryHint="@string/search_hint"
+            app:searchHintIcon="@null"
+            app:searchIcon="@null" />
     </com.google.android.material.appbar.MaterialToolbar>
 
     <LinearLayout

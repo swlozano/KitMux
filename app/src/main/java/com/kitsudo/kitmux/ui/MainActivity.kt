@@ -19,6 +19,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
@@ -56,7 +57,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MainViewModel by viewModels()
-    private val songAdapter = SongAdapter(::onSongClicked)
+    private val songAdapter = SongAdapter(onSongClick = ::onSongClicked)
+    private val searchAdapter = SongAdapter(showFolder = true, onSongClick = ::onSongClicked)
     private val folderAdapter = FolderAdapter(
         onOpen = { viewModel.openFolder(it.path) },
         onPlay = ::onFolderPlay,
@@ -69,9 +71,10 @@ class MainActivity : AppCompatActivity() {
     private var renderedLayout: FolderLayout? = null
 
     /** Pantallas de la actividad (derivadas de [LibraryState]). */
-    private enum class Screen { HOME, SELECT_HIDDEN, HIDDEN, FOLDER }
+    private enum class Screen { HOME, SELECT_HIDDEN, HIDDEN, FOLDER, SEARCH }
 
     private fun screenOf(state: LibraryState) = when {
+        state.searchQuery != null -> Screen.SEARCH
         state.openFolder != null -> Screen.FOLDER
         state.homeMode == HomeMode.SELECT_HIDDEN -> Screen.SELECT_HIDDEN
         state.homeMode == HomeMode.SHOW_HIDDEN -> Screen.HIDDEN
@@ -84,6 +87,7 @@ class MainActivity : AppCompatActivity() {
             Screen.FOLDER -> viewModel.closeFolder()
             Screen.SELECT_HIDDEN -> viewModel.cancelHideSelection()
             Screen.HIDDEN -> viewModel.exitHiddenFolders()
+            Screen.SEARCH -> viewModel.closeSearch()
             Screen.HOME -> Unit
         }
     }
@@ -132,6 +136,12 @@ class MainActivity : AppCompatActivity() {
         setupPlayerControls()
 
         binding.songList.adapter = songAdapter
+        binding.songList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                // Al recorrer los resultados se esconde el teclado.
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) binding.searchField.clearFocus()
+            }
+        })
         binding.folderList.adapter = folderAdapter
         binding.folderList.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -213,9 +223,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         binding.toolbar.inflateMenu(R.menu.main)
+        setupSearch()
         binding.toolbar.setNavigationOnClickListener { navigateUp() }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
+                R.id.action_search -> {
+                    folderAdapter.closeOpenRow()
+                    viewModel.startSearch()
+                    true
+                }
                 R.id.action_layout -> {
                     viewModel.toggleFolderLayout()
                     true
@@ -245,6 +261,41 @@ class MainActivity : AppCompatActivity() {
                 }
                 else -> false
             }
+        }
+    }
+
+    /** Campo de búsqueda de la barra: escribe en el estado y se esconde el teclado al buscar. */
+    private fun setupSearch() {
+        binding.searchField.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                binding.searchField.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                viewModel.setSearchQuery(newText)
+                return true
+            }
+        })
+    }
+
+    /** Muestra u oculta el campo según el estado (también tras girar la pantalla). */
+    private fun syncSearchField(state: LibraryState) {
+        val field = binding.searchField
+        val query = state.searchQuery
+        val searching = query != null
+        if (field.isVisible == searching) return
+        field.isVisible = searching
+        if (searching) {
+            val folder = state.openFolder?.let(LibraryUtils::folderDisplayName)
+            field.queryHint = if (folder != null) getString(R.string.search_in_folder_hint, folder) else getString(R.string.search_hint)
+            field.setQuery(query, false)
+            field.requestFocus()
+            WindowCompat.getInsetsController(window, field).show(WindowInsetsCompat.Type.ime())
+        } else {
+            field.setQuery("", false)
+            field.clearFocus()
+            WindowCompat.getInsetsController(window, field).hide(WindowInsetsCompat.Type.ime())
         }
     }
 
@@ -371,6 +422,7 @@ class MainActivity : AppCompatActivity() {
         backToHome.isEnabled = screen != Screen.HOME
         binding.progress.isVisible = state.scanning
         renderToolbar(state, screen)
+        syncSearchField(state)
 
         if (state.folderLayout != renderedLayout) applyFolderLayout(state.folderLayout)
         folderAdapter.selectionMode = screen == Screen.SELECT_HIDDEN
@@ -378,9 +430,12 @@ class MainActivity : AppCompatActivity() {
         folderAdapter.submitList(state.visibleFolders)
         hiddenAdapter.submitList(state.hiddenFolderList)
         songAdapter.submitList(state.openFolderSongs)
+        searchAdapter.submitList(state.searchResults)
+        val songsAdapter = if (screen == Screen.SEARCH) searchAdapter else songAdapter
+        if (binding.songList.adapter !== songsAdapter) binding.songList.adapter = songsAdapter
         binding.folderList.isVisible = screen == Screen.HOME || screen == Screen.SELECT_HIDDEN
         binding.hiddenList.isVisible = screen == Screen.HIDDEN
-        binding.songList.isVisible = screen == Screen.FOLDER
+        binding.songList.isVisible = screen == Screen.FOLDER || screen == Screen.SEARCH
 
         val selecting = screen == Screen.SELECT_HIDDEN
         if (binding.selectionBar.isVisible != selecting) {
@@ -389,17 +444,28 @@ class MainActivity : AppCompatActivity() {
         }
         binding.selectionSave.isEnabled = state.selection.isNotEmpty()
 
-        val emptyText = when {
-            state.scanning -> R.string.scanning
-            screen == Screen.HIDDEN -> R.string.empty_no_hidden.takeIf { state.hiddenFolderList.isEmpty() }
-            screen == Screen.FOLDER -> null
-            state.visibleFolders.isNotEmpty() -> null
-            !state.hasAudioPermission && state.folders.isEmpty() -> R.string.empty_no_permission
-            state.folders.isNotEmpty() -> R.string.empty_all_hidden
-            else -> R.string.empty_no_music
+        val query = state.searchQuery?.trim()
+        val folderName = state.openFolder?.let(LibraryUtils::folderDisplayName)
+        val emptyText: String? = when {
+            screen == Screen.SEARCH && query.isNullOrEmpty() ->
+                if (folderName != null) getString(R.string.search_in_folder_empty_hint, folderName)
+                else getString(R.string.search_empty_hint)
+            screen == Screen.SEARCH && state.searchResults.isEmpty() && !state.scanning ->
+                if (folderName != null) getString(R.string.search_in_folder_no_results, folderName, query)
+                else getString(R.string.search_no_results, query)
+            screen == Screen.SEARCH -> null
+            else -> when {
+                state.scanning -> R.string.scanning
+                screen == Screen.HIDDEN -> R.string.empty_no_hidden.takeIf { state.hiddenFolderList.isEmpty() }
+                screen == Screen.FOLDER -> null
+                state.visibleFolders.isNotEmpty() -> null
+                !state.hasAudioPermission && state.folders.isEmpty() -> R.string.empty_no_permission
+                state.folders.isNotEmpty() -> R.string.empty_all_hidden
+                else -> R.string.empty_no_music
+            }?.let(::getString)
         }
         binding.emptyView.isVisible = emptyText != null
-        emptyText?.let { binding.emptyView.setText(it) }
+        emptyText?.let { binding.emptyView.text = it }
         updatePlayerUi()
     }
 
@@ -413,6 +479,7 @@ class MainActivity : AppCompatActivity() {
             title = getString(if (grid) R.string.view_as_list else R.string.view_as_grid)
         }
         val libraryActions = home || screen == Screen.FOLDER
+        menu.findItem(R.id.action_search)?.isVisible = libraryActions
         menu.findItem(R.id.action_add_folder)?.isVisible = libraryActions
         menu.findItem(R.id.action_rescan)?.isVisible = libraryActions
         menu.findItem(R.id.action_sync)?.isVisible = libraryActions
@@ -448,6 +515,13 @@ class MainActivity : AppCompatActivity() {
                 subtitle = resources.getQuantityString(R.plurals.folder_count, state.hiddenFolderList.size, state.hiddenFolderList.size)
                 setNavigationIcon(R.drawable.ic_arrow_back)
                 setNavigationContentDescription(R.string.back)
+            }
+            Screen.SEARCH -> {
+                // La barra la ocupa el campo de búsqueda; la flecha lo cierra.
+                title = null
+                subtitle = null
+                setNavigationIcon(R.drawable.ic_arrow_back)
+                setNavigationContentDescription(R.string.close_search)
             }
             Screen.FOLDER -> {
                 val folder = state.folders.firstOrNull { it.path == state.openFolder }
@@ -516,9 +590,10 @@ class MainActivity : AppCompatActivity() {
         c.play()
     }
 
-    private fun onSongClicked(position: Int) {
+    /** Reproduce la lista mostrada (carpeta o resultados de búsqueda) desde la canción tocada. */
+    private fun onSongClicked(songs: List<Song>, position: Int) {
         val c = controller ?: return
-        val songs = songAdapter.currentList
+        binding.searchField.clearFocus()
         c.setMediaItems(songs.map { it.toMediaItem() }, position, 0L)
         c.prepare()
         c.play()
@@ -568,6 +643,7 @@ class MainActivity : AppCompatActivity() {
             applyBottomInset()
         }
         songAdapter.setCurrentSong(item?.mediaId)
+        searchAdapter.setCurrentSong(item?.mediaId)
         val playingFolder = item?.mediaId?.let(viewModel.state.value.folderOfSong::get)
         folderAdapter.setPlayback(playingFolder, c != null && showsPause(c))
         if (c == null || item == null) return

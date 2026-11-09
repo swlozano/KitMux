@@ -13,8 +13,10 @@ import com.kitsudo.kitmux.data.LibraryUtils
 import com.kitsudo.kitmux.data.Song
 import com.kitsudo.kitmux.databinding.ItemSongBinding
 
+/** Canciones de una carpeta o resultados del buscador ([showFolder] añade la carpeta al subtítulo). */
 class SongAdapter(
-    private val onSongClick: (position: Int) -> Unit,
+    private val showFolder: Boolean = false,
+    private val onSongClick: (songs: List<Song>, position: Int) -> Unit,
 ) : ListAdapter<Song, SongAdapter.ViewHolder>(Diff) {
 
     private var currentSongId: String? = null
@@ -38,7 +40,7 @@ class SongAdapter(
         init {
             binding.root.setOnClickListener {
                 val pos = bindingAdapterPosition
-                if (pos != RecyclerView.NO_POSITION) onSongClick(pos)
+                if (pos != RecyclerView.NO_POSITION) onSongClick(currentList, pos)
             }
         }
 
@@ -46,9 +48,12 @@ class SongAdapter(
             val ctx = binding.root.context
             binding.title.text = song.title
             val artist = song.artist ?: ctx.getString(R.string.unknown_artist)
-            binding.subtitle.text = ctx.getString(
-                R.string.song_subtitle, artist, LibraryUtils.formatDuration(song.durationMs),
-            )
+            val duration = LibraryUtils.formatDuration(song.durationMs)
+            binding.subtitle.text = if (showFolder) {
+                ctx.getString(R.string.search_result_subtitle, artist, LibraryUtils.folderDisplayName(song.folder), duration)
+            } else {
+                ctx.getString(R.string.song_subtitle, artist, duration)
+            }
             // Canción actual: contenedor naranja suave y título en el color primario.
             val view = binding.root
             binding.title.setTextColor(

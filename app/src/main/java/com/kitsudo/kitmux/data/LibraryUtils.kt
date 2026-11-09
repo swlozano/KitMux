@@ -1,5 +1,6 @@
 package com.kitsudo.kitmux.data
 
+import java.text.Normalizer
 import java.util.Locale
 
 /** Funciones puras (sin dependencias de Android) para poder probarlas en la JVM. */
@@ -44,6 +45,23 @@ object LibraryUtils {
 
     /** Aplica el resultado de «Ocultar carpetas»: añade las seleccionadas a las ya ocultas. */
     fun hide(hidden: Set<String>, selection: Set<String>): Set<String> = hidden + selection
+
+    private val DIACRITICS = Regex("\\p{Mn}+")
+
+    /** Minúsculas y sin tildes: «Canción» -> «cancion». */
+    fun normalizeForSearch(text: String): String =
+        DIACRITICS.replace(Normalizer.normalize(text, Normalizer.Form.NFD), "").lowercase(Locale.ROOT)
+
+    /**
+     * Cada palabra de la búsqueda debe aparecer en alguno de los campos (sin importar mayúsculas,
+     * tildes ni orden). Una búsqueda vacía no coincide con nada.
+     */
+    fun matchesSearch(query: String, fields: List<String?>): Boolean {
+        val words = normalizeForSearch(query).split(' ').filter { it.isNotBlank() }
+        if (words.isEmpty()) return false
+        val haystack = fields.filterNotNull().joinToString("\n") { normalizeForSearch(it) }
+        return words.all { it in haystack }
+    }
 
     fun formatDuration(ms: Long): String {
         if (ms <= 0) return "0:00"

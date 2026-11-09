@@ -17,6 +17,7 @@
 ## Características
 
 - **Biblioteca por carpetas**: escanea la música del dispositivo y la agrupa por carpetas, en vista de **lista** o **cuadrícula**. También puedes añadir cualquier carpeta concreta con el selector del sistema.
+- **Buscador de canciones** por título, artista, álbum o carpeta, sin importar tildes ni mayúsculas. Dentro de una carpeta busca solo en ella.
 - **Reproducir una carpeta entera** con su botón ▶. Si es la que suena, el mismo botón la pausa.
 - **Reproducción en segundo plano**, con notificación y controles en la pantalla de bloqueo y en auriculares Bluetooth. Pausa sola al desconectar los auriculares.
 - **Aleatorio y repetir** (todas o una).
