@@ -20,6 +20,7 @@
     <string name="sync_pairing_code">Código de emparejado: %1$s</string>
     <string name="sync_banner_ready">Recibiendo desde PC · código %1$s</string>
     <string name="sync_banner_transferring">Transfiriendo archivos desde el PC · código %1$s</string>
+    <string name="sync_banner_deleting">Borrando archivos · código %1$s</string>
     <string name="sync_stop">Detener</string>
     <string name="sync_needs_storage">Sin permiso de almacenamiento no se pueden guardar los archivos recibidos.</string>
     <string name="folder_subtitle">%1$s · %2$s</string>

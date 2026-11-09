@@ -17,9 +17,11 @@ object SyncStatus {
         val address: String? = null,
         val pairingCode: String? = null,
         val lastActivity: String? = null,
-        /** Hay archivos llegando del PC ahora mismo (o hace menos de unos segundos). */
-        val transferring: Boolean = false,
+        /** Lo que está haciendo el PC ahora mismo (o hace menos de unos segundos). */
+        val activity: Activity = Activity.IDLE,
     )
+
+    enum class Activity { IDLE, RECEIVING, DELETING }
 
     private val _state = MutableStateFlow(State())
     val state: StateFlow<State> = _state.asStateFlow()

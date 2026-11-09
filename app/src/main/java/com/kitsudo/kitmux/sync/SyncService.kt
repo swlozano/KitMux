@@ -129,14 +129,14 @@ class SyncService : Service() {
     // Transferencias en curso. El aviso sigue en verde unos segundos tras la última,
     // para que no parpadee entre un archivo y el siguiente de la misma sincronización.
     private var activeTransfers = 0
-    private val transferIdle = Runnable { SyncStatus.update { it.copy(transferring = false) } }
+    private val transferIdle = Runnable { SyncStatus.update { it.copy(activity = SyncStatus.Activity.IDLE) } }
 
-    private fun onTransfer(started: Boolean) {
+    private fun onTransfer(activity: SyncStatus.Activity, started: Boolean) {
         activeTransfers = (activeTransfers + if (started) 1 else -1).coerceAtLeast(0)
         mainHandler.removeCallbacks(transferIdle)
-        if (activeTransfers > 0) {
-            SyncStatus.update { it.copy(transferring = true) }
-        } else {
+        if (started) {
+            SyncStatus.update { it.copy(activity = activity) }
+        } else if (activeTransfers == 0) {
             mainHandler.postDelayed(transferIdle, TRANSFER_HOLD_MS)
         }
     }
@@ -153,7 +153,7 @@ class SyncService : Service() {
                 SyncStatus.update { it.copy(lastActivity = message) }
                 mainHandler.post(::refreshNotification)
             },
-            onTransfer = { started -> mainHandler.post { onTransfer(started) } },
+            onTransfer = { activity, started -> mainHandler.post { onTransfer(activity, started) } },
         )
         val httpServer = MiniHttpServer(server::handle) { Log.w(TAG, "Error en petición", it) }
         val port = try {
@@ -176,7 +176,7 @@ class SyncService : Service() {
         registration = null
         mainHandler.removeCallbacks(transferIdle)
         activeTransfers = 0
-        SyncStatus.update { it.copy(transferring = false) }
+        SyncStatus.update { it.copy(activity = SyncStatus.Activity.IDLE) }
         http?.stop()
         http = null
         syncServer = null

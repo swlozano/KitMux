@@ -274,31 +274,42 @@ class MainActivity : AppCompatActivity() {
     private fun renderSync(state: SyncStatus.State) {
         binding.toolbar.menu.findItem(R.id.action_sync)?.isChecked = state.enabled
         binding.syncBanner.isVisible = state.enabled
-        val transferring = state.transferring && state.address != null
+        val activity = if (state.address == null) SyncStatus.Activity.IDLE else state.activity
         binding.syncText.text = when {
             state.address == null -> getString(R.string.sync_waiting_wifi)
             else -> buildString {
-                val title = if (transferring) R.string.sync_banner_transferring else R.string.sync_banner_ready
+                val title = when (activity) {
+                    SyncStatus.Activity.RECEIVING -> R.string.sync_banner_transferring
+                    SyncStatus.Activity.DELETING -> R.string.sync_banner_deleting
+                    SyncStatus.Activity.IDLE -> R.string.sync_banner_ready
+                }
                 append(getString(title, state.pairingCode.orEmpty()))
                 state.lastActivity?.let { append('\n').append(it) }
             }
         }
-        renderSyncColors(transferring)
+        renderSyncColors(activity)
     }
 
-    private var syncBannerGreen: Boolean? = null
+    private var syncBannerActivity: SyncStatus.Activity? = null
 
-    /** Verde mientras llegan archivos del PC; naranja claro de marca en espera. Transición suave. */
-    private fun renderSyncColors(transferring: Boolean) {
-        if (syncBannerGreen == transferring) return
-        val animate = syncBannerGreen != null && binding.syncBanner.isVisible
-        syncBannerGreen = transferring
-        val (bgTo, fgTo) = if (transferring) {
-            ContextCompat.getColor(this, R.color.color_success_container) to
-                ContextCompat.getColor(this, R.color.color_on_success_container)
-        } else {
-            MaterialColors.getColor(binding.syncBanner, com.google.android.material.R.attr.colorPrimaryContainer) to
-                MaterialColors.getColor(binding.syncBanner, com.google.android.material.R.attr.colorOnPrimaryContainer)
+    /**
+     * Verde mientras llegan archivos del PC, naranja intenso mientras se borran y naranja claro
+     * de marca en espera. Transición suave.
+     */
+    private fun renderSyncColors(activity: SyncStatus.Activity) {
+        if (syncBannerActivity == activity) return
+        val animate = syncBannerActivity != null && binding.syncBanner.isVisible
+        syncBannerActivity = activity
+        val attr = { id: Int -> MaterialColors.getColor(binding.syncBanner, id) }
+        val (bgTo, fgTo) = when (activity) {
+            SyncStatus.Activity.RECEIVING ->
+                ContextCompat.getColor(this, R.color.color_success_container) to
+                    ContextCompat.getColor(this, R.color.color_on_success_container)
+            SyncStatus.Activity.DELETING ->
+                attr(androidx.appcompat.R.attr.colorPrimary) to attr(com.google.android.material.R.attr.colorOnPrimary)
+            SyncStatus.Activity.IDLE ->
+                attr(com.google.android.material.R.attr.colorPrimaryContainer) to
+                    attr(com.google.android.material.R.attr.colorOnPrimaryContainer)
         }
         val bgFrom = binding.syncBanner.backgroundTintList?.defaultColor ?: bgTo
         val fgFrom = binding.syncText.currentTextColor

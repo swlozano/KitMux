@@ -21,8 +21,8 @@ class SyncServer(
     private val pairing: PairingStore,
     private val onPairingCodeChanged: (String) -> Unit,
     private val onActivity: (String) -> Unit,
-    /** true al empezar a recibir un archivo, false al terminar (bien o mal). */
-    private val onTransfer: (Boolean) -> Unit = {},
+    /** Al empezar (started = true) y terminar, bien o mal, de recibir o borrar un archivo. */
+    private val onTransfer: (SyncStatus.Activity, Boolean) -> Unit = { _, _ -> },
 ) {
     private val lock = Any()
     private var pairingCode = pairing.newPairingCode()
@@ -84,16 +84,11 @@ class SyncServer(
                 if (!LibraryUtils.isAudioFile(SyncPaths.name(path), null)) throw HttpException(415, "solo se aceptan archivos de audio")
                 val size = head.contentLength ?: throw HttpException(411, "se requiere Content-Length")
                 onActivity("Recibiendo $path")
-                onTransfer(true)
-                try {
-                    storage.write(path, size, body)
-                } finally {
-                    onTransfer(false)
-                }
+                tracked(SyncStatus.Activity.RECEIVING) { storage.write(path, size, body) }
                 changed("Recibido $path")
             }
             "DELETE" -> {
-                if (!storage.delete(path)) throw HttpException(404, "no existe")
+                if (!tracked(SyncStatus.Activity.DELETING) { storage.delete(path) }) throw HttpException(404, "no existe")
                 changed("Borrado $path")
             }
             else -> throw HttpException(405, "método no permitido")
@@ -106,6 +101,15 @@ class SyncServer(
         if (SyncPaths.extension(from) != SyncPaths.extension(to)) throw HttpException(400, "no se puede cambiar la extensión")
         if (!storage.move(from, to)) throw HttpException(404, "no existe")
         return changed("Movido $from → $to")
+    }
+
+    private inline fun <T> tracked(activity: SyncStatus.Activity, block: () -> T): T {
+        onTransfer(activity, true)
+        try {
+            return block()
+        } finally {
+            onTransfer(activity, false)
+        }
     }
 
     private fun changed(message: String): HttpResponse {
